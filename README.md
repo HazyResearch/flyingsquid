@@ -10,7 +10,9 @@ accurate the _labeling functions_ are.
 The label model can be used directly for downstream applications, or it can be
 used to train a powerful end model:
 
-![system_diagram](/figs/System Diagram.png)
+<div>
+  <img src="figs/System Diagram.png" width="800">
+</div>
 
 Check out our blog post and paper on arXiv for more details.
 
