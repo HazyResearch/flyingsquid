@@ -14,6 +14,8 @@ used to train a powerful end model:
   <img src="figs/System Diagram.png" width="800">
 </div>
 
+FlyingSquid can be used to build models for all sorts of tasks, including text
+applications, video analysis, and online learning.
 Check out our blog post and paper on arXiv for more details.
 
 ## Getting Started
