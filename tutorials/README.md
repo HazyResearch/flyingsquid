@@ -6,7 +6,7 @@ We have three tutorials to help you get started:
 * Online Learning
 
 ## Basics
-Check out NOTEBOOK to get started.
+Check out `01 Basics.ipynb` to get started.
 We'll use some simple synthetic data to introduce you to FlyingSquid's API.
 
 ## Video and Sequential Data

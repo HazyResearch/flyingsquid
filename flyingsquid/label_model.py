@@ -11,7 +11,7 @@ import random
 class LabelModel:
     
     def __init__(self, m, v=1, y_edges=[], lambda_y_edges=[], lambda_edges=[], 
-                 allow_abstentions=False, triplets=None, triplet_seed=0):
+                 allow_abstentions=True, triplets=None, triplet_seed=0):
         '''Initialize the LabelModel with a graph G.
         
         m: number of LF's
@@ -19,7 +19,8 @@ class LabelModel:
         y_edges: edges between the tasks. (i, j) in y_edges means that
             there is an edge between y_i and y_j.
         lambda_y_edges: edges between LF's and tasks. (i, j) in lambda_y_edges
-            means that there is an edge between lambda_i and y_j.
+            means that there is an edge between lambda_i and y_j. If this list
+            is empty, assume that all labeling functions are connected to Y_0.
         lambda_edges: edges between LF's. (i, j) in lambda_edges means that
             there is an edge between lambda_i and lambda_j.
         allow_abstentions: if True, allow abstentions in L_train.
@@ -27,6 +28,9 @@ class LabelModel:
         triplet_seed: if triplets not specified, randomly shuffle the nodes
             with this seed when generating triplets
         '''
+        if lambda_y_edges == []:
+            lambda_y_edges = [(i, 0) for i in range(m)]
+        
         G = MarkovModel()
         # Add LF nodes
         G.add_nodes_from([
