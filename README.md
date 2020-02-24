@@ -26,4 +26,24 @@ Insert bare minimum usage example here...
 
 ## Installation
 
-Installation instructions here...
+We recommend using `conda` to install FlyingSquid:
+
+```
+git clone https://github.com/HazyResearch/flyingsquid.git
+
+conda env create -f environment.yml
+conda activate flyingsquid
+
+pip install -e .
+```
+
+Alternatively, you can install the dependencies yourself:
+* [Pgmpy](http://pgmpy.org/)
+* [PyTorch](https://pytorch.org/) (only necessary for the PyTorch integration) 
+
+And then install the actual package:
+```
+git clone https://github.com/HazyResearch/flyingsquid.git
+
+pip install -e .
+```

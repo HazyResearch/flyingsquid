@@ -1,0 +1,30 @@
+name: flyingsquid 
+channels:
+  - pytorch
+  - conda-forge
+dependencies:  # New core deps should also be added to setup.py for pip
+  - python=3.7
+  - dill
+  - networkx>=2.2
+  - numpy
+  - pandas
+  - pytorch>=1
+  - scipy
+  - tornado<6  # tornado v6 introduced a breaking depedency
+  - pip
+  - pip:
+    - tensorboardX==1.4
+    - scipy
+    - pyparsing
+    - statsmodels
+    - tqdm
+    - joblib
+    - pgmpy
+  - matplotlib=3
+  - nose
+  - jupyter
+  - nb_conda_kernels
+  - runipy
+  - scikit-learn
+  - torchvision
+  - tensorboard
