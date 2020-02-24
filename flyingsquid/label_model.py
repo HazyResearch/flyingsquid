@@ -10,8 +10,8 @@ import random
 
 class LabelModel:
     
-    def __init__(self, m, v, y_edges, lambda_y_edges, lambda_edges, allow_abstentions=False,
-                 triplets=None, triplet_seed=0):
+    def __init__(self, m, v=1, y_edges=[], lambda_y_edges=[], lambda_edges=[], 
+                 allow_abstentions=False, triplets=None, triplet_seed=0):
         '''Initialize the LabelModel with a graph G.
         
         m: number of LF's
@@ -1253,6 +1253,8 @@ class LabelModel:
             return len([
                 node for node in nodes if 'lambda' in node
             ])
+
+        L_matrix = np.array(L_matrix)
         
         Y_vecs = self.enumerate_ys()
         numerator_vals_by_lambda_count = []
@@ -1304,7 +1306,7 @@ class LabelModel:
                     for clique, marginal in correct_lambda_cliques
                 ]
                 for data_point in L_matrix
-            ])
+            ]).astype('int')
 
             clique_values = A_lambda[:, np.arange(indexes.shape[1]), indexes]
 
