@@ -6,9 +6,9 @@ FlyingSquid.
 ## Tutorials
 
 We have two tutorials to help you get started:
-* [01 Basics.ipynb](tutorials/01 Basics.ipynb): a Jupyter notebook that uses
+* [Basics.ipynb](tutorials/Basics.ipynb): a Jupyter notebook that uses
 some simple synthetic data to introduce FlyingSquid's API
-* [02 Video.ipynb](tutorials/02 Video.ipynb): a Jupyter notebook that shows how
+* [Video.ipynb](tutorials/Video.ipynb): a Jupyter notebook that shows how
 to use FlyingSquid to model sequential dependencies for applications like video
 
 ## Examples
