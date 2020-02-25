@@ -97,8 +97,8 @@ class FSLoss(nn.Module):
         loss.backward()
     '''
     
-    def __init__(self, m, v, task_deps, lf_task_deps, lf_deps,
-                 Y_dev=None, cb=None, allow_abstentions = False, device='cpu',
+    def __init__(self, m, v=1, task_deps=[], lf_task_deps=[], lf_deps=[],
+                 Y_dev=None, cb=None, allow_abstentions = True, device='cpu',
                  buffer_capacity=100, update_frequency=10, clamp_vals=False,
                  triplets=None, pos_weight=None):
         super(WSLoss, self).__init__()
@@ -106,14 +106,17 @@ class FSLoss(nn.Module):
         self.v = v
         self.task_deps = task_deps
         self.lf_task_deps = lf_task_deps
+        if self.lf_task_deps == []:
+            self.lf_task_deps = [(i, 0) for i in range(m)]
         self.lf_deps = lf_deps
         self.Y_dev = Y_dev
         self.cb = cb
         self.device = device
         self.clamp_vals = clamp_vals
         
-        self.tlm = TripletLabelModel(m, v, task_deps, lf_task_deps, lf_deps,
-                                     allow_abstentions = allow_abstentions, triplets=triplets)
+        self.lm = LabelModel(m, v=v, y_edges=task_deps, lambda_y_edges=lf_task_deps,
+                             lambda_edges=lf_deps, allow_abstentions = allow_abstentions,
+                             triplets=triplets)
         
         self.criterion = nn.BCEWithLogitsLoss() if pos_weight is None else nn.BCEWithLogitsLoss(pos_weight = pos_weight)
         self.buffer_capacity = buffer_capacity
@@ -157,7 +160,7 @@ class FSLoss(nn.Module):
             if (self.buffer_index % update_frequency) == 0:
                 L_train = self.lf_buffer.cpu().numpy()[:self.buffer_size]
 
-                self.tlm.fit(
+                self.lm.fit(
                     L_train,
                     Y_dev = self.Y_dev,
                     class_balance = self.cb
@@ -167,7 +170,7 @@ class FSLoss(nn.Module):
             if self.buffer_index == self.buffer_capacity:
                 self.buffer_index = torch.tensor(0)
             
-            labels = self.tlm.predict_proba_marginalized(
+            labels = self.lm.predict_proba_marginalized(
                 [label_vector.cpu().numpy()], verbose=False)
             if self.clamp_vals:
                 labels[0] = [1. if pred >= 0.5 else 0. for pred in labels[0]]
