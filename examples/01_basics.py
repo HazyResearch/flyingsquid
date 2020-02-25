@@ -9,9 +9,7 @@ You can run this file from the examples folder.
 '''
 
 from flyingsquid.label_model import LabelModel
-import sys
-sys.path.append('../tutorials')
-from tutorial_helpers import *
+from tutorials.tutorial_helpers import *
 
 L_train, L_dev, Y_dev = synthetic_data_basics()
 

@@ -10,9 +10,9 @@ You can run this file from the examples folder.
 from flyingsquid.label_model import LabelModel
 import numpy as np
 
-L_train = np.load('../tutorials/L_train_video.npy')
-L_dev = np.load('../tutorials/L_dev_video.npy')
-Y_dev = np.load('../tutorials/Y_dev_video.npy')
+L_train = np.load('tutorials/L_train_video.npy')
+L_dev = np.load('tutorials/L_dev_video.npy')
+Y_dev = np.load('tutorials/Y_dev_video.npy')
 
 # Model three frames at a time
 v = 3

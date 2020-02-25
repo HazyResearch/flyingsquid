@@ -20,11 +20,22 @@ Check out our blog post and paper on arXiv for more details.
 
 ## Getting Started
 * Quickly [install](#installation) FlyingSquid
-* Try out the [tutorials](tutorials/)
+* Check out the [examples](examples/) folder for tutorials and some simple code
+examples
 
 ## Sample Usage
+```Python
+from flyingsquid.label_model import LabelModel
+import numpy as np
 
-Insert bare minimum usage example here...
+L_train = np.load('...')
+
+m = L_train.shape[1]
+label_model = LabelModel(m)
+label_model.fit(L_train)
+
+preds = label_model.predict(L_train)
+```
 
 ## Installation
 

@@ -19,9 +19,9 @@ from torchvision import datasets, models, transforms
 from torch.utils.data import Dataset, DataLoader
 
 # Load in the L matrices
-L_train = np.load('../tutorials/L_train_video.npy')
-L_dev = np.load('../tutorials/L_dev_video.npy')
-Y_dev = np.load('../tutorials/Y_dev_video.npy')
+L_train = np.load('tutorials/L_train_video.npy')
+L_dev = np.load('tutorials/L_dev_video.npy')
+Y_dev = np.load('tutorials/Y_dev_video.npy')
 
 # This is where you would load in the images corresponding to the rows
 X_paths_train = np.load('....')
