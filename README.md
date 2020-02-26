@@ -1,7 +1,7 @@
 # FlyingSquid: More Interactive Weak Supervision
 
 <div>
-  <img src="figs/System Diagram.png" width="400">
+  <img src="figs/logo.png" width="400">
 </div>
 
 FlyingSquid is a new framework for automatically building models from multiple
