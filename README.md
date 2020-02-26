@@ -1,6 +1,8 @@
 # FlyingSquid: More Interactive Weak Supervision
 
-INSERT LOGO HERE
+<div>
+  <img src="figs/System Diagram.png" width="400">
+</div>
 
 FlyingSquid is a new framework for automatically building models from multiple
 noisy label sources.
