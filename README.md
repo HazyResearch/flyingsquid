@@ -18,7 +18,7 @@ used to train a powerful end model:
 
 FlyingSquid can be used to build models for all sorts of tasks, including text
 applications, video analysis, and online learning.
-Check out our blog post (appearing soong) and paper on
+Check out our [blog post](http://hazyresearch.stanford.edu/flyingsquid) and paper on
 [arXiv](https://arxiv.org/abs/2002.11955)
 for more details!
 
