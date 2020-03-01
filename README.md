@@ -64,3 +64,15 @@ git clone https://github.com/HazyResearch/flyingsquid.git
 
 pip install -e .
 ```
+
+## Citation
+
+If you use our work or found it useful, please cite our [arXiv paper](https://arxiv.org/abs/2002.11955) for now:
+```
+@article{fu2020fast,
+  author = {Daniel Y. Fu and Mayee F. Chen and Frederic Sala and Sarah M. Hooper and Kayvon Fatahalian and Christopher Ré},
+  title = {Fast and Three-rious: Speeding Up Weak Supervision with Triplet Methods},
+  journal = {arXiv preprint arXiv:2002.11955}
+  year = {2020},
+}
+```
