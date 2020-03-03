@@ -66,7 +66,11 @@ And then install the actual package:
 ```
 git clone https://github.com/HazyResearch/flyingsquid.git
 
+cd flyingsquid
+
 pip install -e .
+
+cd ..
 ```
 
 ## Citation
