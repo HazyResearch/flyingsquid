@@ -48,10 +48,14 @@ We recommend using `conda` to install FlyingSquid:
 ```
 git clone https://github.com/HazyResearch/flyingsquid.git
 
+cd flyingsquid
+
 conda env create -f environment.yml
 conda activate flyingsquid
 
 pip install -e .
+
+cd ..
 ```
 
 Alternatively, you can install the dependencies yourself:
