@@ -80,7 +80,7 @@ If you use our work or found it useful, please cite our [arXiv paper](https://ar
 @article{fu2020fast,
   author = {Daniel Y. Fu and Mayee F. Chen and Frederic Sala and Sarah M. Hooper and Kayvon Fatahalian and Christopher R\'e},
   title = {Fast and Three-rious: Speeding Up Weak Supervision with Triplet Methods},
-  journal = {arXiv preprint arXiv:2002.11955}
+  journal = {arXiv preprint arXiv:2002.11955},
   year = {2020},
 }
 ```
