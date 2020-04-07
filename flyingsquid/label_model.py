@@ -1277,8 +1277,9 @@ class LabelModel:
             ]
             if len(correct_lambda_cliques) == 0:
                 continue
+            lambda_options = (-1, 0, 1) if self.allow_abstentions else (-1, 1)
             lambda_vals = {
-                i: (-1, 0, 1) if self.allow_abstentions else (-1, 1)
+                i: lambda_options
                 for i in range(lambda_count)
             }
             lambda_vecs = sorted([
@@ -1302,7 +1303,10 @@ class LabelModel:
                     for k, lambda_vec in enumerate(lambda_vecs):
                         A_lambda[i, j, k] = lambda_marginal.reduce(
                             [
-                                (clique_node, lambda_val + 1)
+                                (
+                                    clique_node,
+                                    lambda_options.index(lambda_val)
+                                )
                                 for clique_node, lambda_val in zip(clique, lambda_vec)
                             ], 
                             inplace=False).values
@@ -1310,8 +1314,8 @@ class LabelModel:
             indexes = np.array([
                 [
                     np.sum([
-                        (((data_point[int(node.split('_')[1])]) + 1) * 
-                         ((3 if self.allow_abstentions else 2) ** (lambda_count - i - 1)))
+                        ((lambda_options.index(data_point[int(node.split('_')[1])])) * 
+                         ((len(lambda_options)) ** (lambda_count - i - 1)))
                         for i, node in enumerate(clique[:-1])
                     ])
                     for clique, marginal in correct_lambda_cliques
