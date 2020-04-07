@@ -1270,6 +1270,8 @@ class LabelModel:
                 (clique, marginal)
                 for clique, marginal in self.clique_marginals if num_lambdas(clique) == lambda_count
             ]
+            if len(correct_lambda_cliques) == 0:
+                continue
             lambda_vals = {
                 i: (-1, 0, 1) if self.allow_abstentions else (-1, 1)
                 for i in range(lambda_count)
