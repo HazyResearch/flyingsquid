@@ -446,7 +446,7 @@ class LabelModel:
         else:
             probabilities = {
                 expectation: 0.5 * (1 + expectation_values[expectation])
-                for expectation in sorted(list(expectation_value.keys()))
+                for expectation in sorted(list(expectation_values.keys()))
             }
             
         
@@ -485,11 +485,16 @@ class LabelModel:
             # P(a = 0, b = 0, ..., c = 0) for everything in this array
             r_vec_entry_equal_zero = []
             for e_vec_entry, lf_idx in zip(e_vec_tup, lf_indices):
-                # if there's a -1 in the slot, add
-                if e_vec_entry == -1:
-                    r_vec_entry_equal_zero.append('lambda_{}'.format(lf_idx))
-                if e_vec_entry == 0:
-                    r_vec_entry_equal_one.append('lambda_{}'.format(lf_idx))
+                # if you have abstentions, -1 means add to equal zero, 0 means add to equal one
+                if self.allow_abstentions: 
+                    if e_vec_entry == -1:
+                        r_vec_entry_equal_zero.append('lambda_{}'.format(lf_idx))
+                    if e_vec_entry == 0:
+                        r_vec_entry_equal_one.append('lambda_{}'.format(lf_idx))
+                # otherwise, -1 means add to equal one
+                else:
+                    if e_vec_entry == -1:
+                        r_vec_entry_equal_one.append('lambda_{}'.format(lf_idx))
             if e_vec_tup[-1] == -1:
                 r_vec_entry_equal_one.append(Y_val)
         
