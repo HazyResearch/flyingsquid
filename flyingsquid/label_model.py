@@ -414,11 +414,11 @@ class LabelModel:
             ]
             
             expectation_values[exp1] = (
-                math.sqrt(abs(moment_vals[0] * moment_vals[1] / moment_vals[2])) if moment_vals[2] > 0 else 0)
+                math.sqrt(abs(moment_vals[0] * moment_vals[1] / moment_vals[2])) if moment_vals[2] != 0 else 0)
             expectation_values[exp2] = (
-                math.sqrt(abs(moment_vals[0] * moment_vals[2] / moment_vals[1])) if moment_vals[1] > 0 else 0)
+                math.sqrt(abs(moment_vals[0] * moment_vals[2] / moment_vals[1])) if moment_vals[1] != 0 else 0)
             expectation_values[exp3] = (
-                math.sqrt(abs(moment_vals[1] * moment_vals[2] / moment_vals[0])) if moment_vals[0] > 0 else 0)
+                math.sqrt(abs(moment_vals[1] * moment_vals[2] / moment_vals[0])) if moment_vals[0] != 0 else 0)
         
         if sign_recovery == 'all_positive':
             # all signs are already positive
