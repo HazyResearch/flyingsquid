@@ -414,11 +414,11 @@ class LabelModel:
             ]
             
             expectation_values[exp1] = (
-                math.sqrt(abs(moment_vals[0] * moment_vals[1] / moment_vals[2])) if moment_vals[2] > 0 else 0)
+                math.sqrt(abs(moment_vals[0] * moment_vals[1] / moment_vals[2])) if moment_vals[2] != 0 else 0)
             expectation_values[exp2] = (
-                math.sqrt(abs(moment_vals[0] * moment_vals[2] / moment_vals[1])) if moment_vals[1] > 0 else 0)
+                math.sqrt(abs(moment_vals[0] * moment_vals[2] / moment_vals[1])) if moment_vals[1] != 0 else 0)
             expectation_values[exp3] = (
-                math.sqrt(abs(moment_vals[1] * moment_vals[2] / moment_vals[0])) if moment_vals[0] > 0 else 0)
+                math.sqrt(abs(moment_vals[1] * moment_vals[2] / moment_vals[0])) if moment_vals[0] != 0 else 0)
         
         if sign_recovery == 'all_positive':
             # all signs are already positive
@@ -446,7 +446,7 @@ class LabelModel:
         else:
             probabilities = {
                 expectation: 0.5 * (1 + expectation_values[expectation])
-                for expectation in sorted(list(expectation_value.keys()))
+                for expectation in sorted(list(expectation_values.keys()))
             }
             
         
@@ -485,11 +485,16 @@ class LabelModel:
             # P(a = 0, b = 0, ..., c = 0) for everything in this array
             r_vec_entry_equal_zero = []
             for e_vec_entry, lf_idx in zip(e_vec_tup, lf_indices):
-                # if there's a -1 in the slot, add
-                if e_vec_entry == -1:
-                    r_vec_entry_equal_zero.append('lambda_{}'.format(lf_idx))
-                if e_vec_entry == 0:
-                    r_vec_entry_equal_one.append('lambda_{}'.format(lf_idx))
+                # if you have abstentions, -1 means add to equal zero, 0 means add to equal one
+                if self.allow_abstentions: 
+                    if e_vec_entry == -1:
+                        r_vec_entry_equal_zero.append('lambda_{}'.format(lf_idx))
+                    if e_vec_entry == 0:
+                        r_vec_entry_equal_one.append('lambda_{}'.format(lf_idx))
+                # otherwise, -1 means add to equal one
+                else:
+                    if e_vec_entry == -1:
+                        r_vec_entry_equal_one.append('lambda_{}'.format(lf_idx))
             if e_vec_tup[-1] == -1:
                 r_vec_entry_equal_one.append(Y_val)
         
@@ -1270,8 +1275,11 @@ class LabelModel:
                 (clique, marginal)
                 for clique, marginal in self.clique_marginals if num_lambdas(clique) == lambda_count
             ]
+            if len(correct_lambda_cliques) == 0:
+                continue
+            lambda_options = (-1, 0, 1) if self.allow_abstentions else (-1, 1)
             lambda_vals = {
-                i: (-1, 0, 1) if self.allow_abstentions else (-1, 1)
+                i: lambda_options
                 for i in range(lambda_count)
             }
             lambda_vecs = sorted([
@@ -1295,7 +1303,10 @@ class LabelModel:
                     for k, lambda_vec in enumerate(lambda_vecs):
                         A_lambda[i, j, k] = lambda_marginal.reduce(
                             [
-                                (clique_node, lambda_val + 1)
+                                (
+                                    clique_node,
+                                    lambda_options.index(lambda_val)
+                                )
                                 for clique_node, lambda_val in zip(clique, lambda_vec)
                             ], 
                             inplace=False).values
@@ -1303,8 +1314,8 @@ class LabelModel:
             indexes = np.array([
                 [
                     np.sum([
-                        (((data_point[int(node.split('_')[1])]) + 1) * 
-                         ((3 if self.allow_abstentions else 2) ** (lambda_count - i - 1)))
+                        ((lambda_options.index(data_point[int(node.split('_')[1])])) * 
+                         ((len(lambda_options)) ** (lambda_count - i - 1)))
                         for i, node in enumerate(clique[:-1])
                     ])
                     for clique, marginal in correct_lambda_cliques
