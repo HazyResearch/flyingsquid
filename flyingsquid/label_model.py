@@ -2,13 +2,18 @@ from pgmpy.models import MarkovModel
 from pgmpy.factors.discrete import JointProbabilityDistribution, DiscreteFactor
 from itertools import combinations
 from flyingsquid.helpers import *
+from flyingsquid import _triplets
+from flyingsquid import _graphs
+from flyingsquid import _observables
+from flyingsquid import _lm_parameters
 import numpy as np
 import math
 from tqdm import tqdm
 import sys
 import random
 
-class LabelModel:
+class LabelModel(_triplets.Mixin, _graphs.Mixin, _observables.Mixin,
+                 _lm_parameters.Mixin):
     
     def __init__(self, m, v=1, y_edges=[], lambda_y_edges=[], lambda_edges=[], 
                  allow_abstentions=True, triplets=None, triplet_seed=0):
@@ -83,125 +88,6 @@ class LabelModel:
         obj = cls.__new__(cls)
         obj.__dict__.update(attributes)
         return obj
-        
-    def _is_separator(self, srcSet, dstSet, separatorSet):
-        '''Check if separatorSet separates srcSet from dstSet.
-        
-        Tries to find a path from some node in srcSet to some node in dstSet that doesn't
-        pass through separatorSet. If successful, return False. Otherwise, return True.
-        '''
-        def neighbors(node):
-            neighbor_set = set()
-            for edge in self.G.edges:
-                if edge[0] == node:
-                    neighbor_set.add(edge[1])
-                if edge[1] == node:
-                    neighbor_set.add(edge[0])
-            return list(neighbor_set)
-        
-        visited = set()
-        for srcNode in srcSet:
-            if srcNode in dstSet:
-                return False
-            queue = [srcNode]
-
-            curNode = srcNode
-
-            while len(queue) > 0:
-                curNode = queue.pop()
-                if curNode not in visited:
-                    visited.add(curNode)
-                else:
-                    continue
-
-                for neighbor in neighbors(curNode):
-                    if curNode == srcNode:
-                        continue
-                    if neighbor in dstSet:
-                        return False
-                    if neighbor in separatorSet:
-                        continue
-                    if neighbor not in visited:
-                        queue.push(neighbor)
-        
-        return True
-                    
-        
-    def _check(self):
-        '''Check to make sure we can solve this.
-        
-        Checks:
-        * For each node or separator set in the junction tree:
-            There is either only one Y node in the clique, or the clique is made up entirely of Y nodes, since
-            we can only estimate marginals where there is at most one Y, unless the entire marginal is
-            made up of Y's)
-        * For each node or separator set in the junction tree that contains at least one
-          lambda node and exactly one Y node:
-            The Y node separates the lambda's from at least two other lambda nodes, that are themselves
-            separated by Y. To estimate the marginal mu(lambda_i, ..., lambda_j, Y_k), we need to find
-            lambda_a, lambda_b such that lambda_a, lambda_b, and the joint (lambda_i, ..., lambda_j) are
-            independent conditioned on Y_k. This amounts to Y_k separating lambda_a, lambda_b, and
-            (lambda_i, ..., lambda_j). Note that lambda_i, ..., lambda_j do not have to be separated by Y_k.
-        
-        Outputs: True if we can solve this, False otherwise.
-        '''
-        def num_Ys(nodes):
-            return len([
-                node for node in nodes if 'Y' in node
-            ])
-        
-        def num_lambdas(nodes):
-            return len([
-                node for node in nodes if 'lambda' in node
-            ])
-        
-        def estimatable_clique(clique):
-            y_count = num_Ys(clique)
-            lambda_count = num_lambdas(clique)
-            
-            return y_count <= 1 or lambda_count == 0
-        
-        for clique in self.junction_tree.nodes:
-            if not estimatable_clique(clique):
-                return False, "We can't estimate {}!".format(clique)
-        
-        for separator_set in self.separator_sets:
-            if not estimatable_clique(clique):
-                return False, "We can't estimate {}!".format(separator_set)
-        
-        # for each marginal we need to estimate, check if there is a valid triplet
-        marginals = sorted(list(self.junction_tree.nodes) + list(self.separator_sets))
-        for marginal in marginals:
-            y_count = num_Ys(marginal)
-            lambda_count = num_lambdas(marginal)
-            
-            if y_count != 1:
-                continue
-            
-            separator_y = [node for node in marginal if 'Y' in node]
-            lambdas = [node for node in marginal if 'lambda' in node]
-            
-            found = False
-            for first_node in self.nodes:
-                if 'Y' in first_node or first_node in lambdas:
-                    continue
-                for second_node in self.nodes:
-                    if 'Y' in first_node or first_node in lambdas:
-                        continue
-                        
-                    if (self._is_separator(lambdas, [first_node], separator_y) and
-                        self._is_separator(lambdas, [second_node], separator_y) and
-                        self._is_separator([first_node], [second_node], separator_y)):
-                        found = True
-                        break
-                if found:
-                    break
-            
-            if not found:
-                print('Could not find triplet for {}!'.format(marginal))
-                return False
-        
-        return True
     
     def enumerate_ys(self):
         # order to output probabilities
@@ -212,429 +98,6 @@ class LabelModel:
         ])
         
         return Y_vecs
-    
-    def _triplet_method_preprocess(self, expectations_to_estimate):
-        # create triplets for what we need, and return the moments we'll need
-        
-        exp_to_estimate_list = sorted(list(expectations_to_estimate))
-        if self.triplet_seed is not None:
-            random.shuffle(exp_to_estimate_list)
-        
-        if self.triplets is None:
-            expectations_in_triplets = set()
-            triplets = []
-            for expectation in exp_to_estimate_list:
-                # if we're already computing it, don't need to add to a new triplet
-                if expectation in expectations_in_triplets:
-                    continue
-
-                if not self.allow_abstentions:
-                    Y_node = expectation[-1]
-                else:
-                    Y_node = expectation[0][-1]
-
-                def check_triplet(triplet):
-                    return (self._is_separator(triplet[0][:-1], triplet[1][:-1], Y_node) and
-                        self._is_separator(triplet[0][:-1], triplet[2][:-1], Y_node) and
-                        self._is_separator(triplet[1][:-1], triplet[2][:-1], Y_node))
-
-                triplet = [expectation]
-                found = False
-
-                # first try looking at the other expectations that we need to estimate
-                for first_node in exp_to_estimate_list:
-                    if self.allow_abstentions:
-                        # need to check if conditionals are the same
-                        if (first_node in triplet or # skip if it's already in the triplet
-                            first_node[0][-1] != Y_node or # skip if the Y values aren't the same
-                            first_node[1] != expectation[1] or # skip if conditions are different
-                            (len(first_node[0]) > 2 and len(expectation[0]) > 2) or # at most one item in the triplet can have length > 2
-                            first_node in expectations_in_triplets or # we're already computing this
-                            not self._is_separator(expectation[0][:-1], first_node[0][:-1], Y_node)): # not separated
-                            continue
-                    else:
-                        if (first_node in triplet or # skip if it's already in the triplet
-                            first_node[-1] != Y_node or # skip if the Y values aren't the same
-                            (len(first_node) > 2 and len(expectation) > 2) or # at most one item in the triplet can have length > 2
-                            first_node in expectations_in_triplets or # we're already computing this
-                            not self._is_separator(expectation[:-1], first_node[:-1], Y_node)): # not separated
-                            continue    
-                    triplet = [expectation, first_node]
-                    # first try looking at the other expectations that we need to estimate
-                    for second_node in exp_to_estimate_list:
-                        if self.allow_abstentions:
-                            if (second_node in triplet or # skip if it's already in the triplet
-                                second_node[0][-1] != Y_node or # skip if the Y values aren't the same
-                                second_node[1] != expectation[1] or # skip if conditions are different
-                                (len(second_node[0]) > 2 and
-                                     any(len(exp[0]) > 2 for exp in triplet)) or # at most one item in the triplet can have length > 2
-                                second_node in expectations_in_triplets or # we're already computing this
-                                not all(self._is_separator(exp[0][:-1], second_node[0][:-1], Y_node) for exp in triplet)): # not separated
-                                continue
-                        else:
-                            if (second_node in triplet or # skip if it's already in the triplet
-                                second_node[-1] != Y_node or # skip if the Y values aren't the same
-                                (len(second_node) > 2 and
-                                     any(len(exp) > 2 for exp in triplet)) or # at most one item in the triplet can have length > 2
-                                second_node in expectations_in_triplets or # we're already computing this
-                                not all(self._is_separator(exp[:-1], second_node[:-1], Y_node) for exp in triplet)): # not separated
-                                continue
-
-                        # we found a triplet!
-                        triplet = [expectation, first_node, second_node]
-                        found = True
-                        break
-                    if found:
-                        break
-
-                    # otherwise, try everything
-                    for second_node in [
-                        ((node, Y_node), expectation[1]) if self.allow_abstentions else (node, Y_node)
-                        for node in self.nodes
-                    ]:
-                        if self.allow_abstentions:
-                            if (second_node in triplet or # skip if it's already in the triplet
-                                second_node[1] != expectation[1] or # skip if conditions are different
-                                not all(self._is_separator(exp[0][:-1], second_node[0][:-1], Y_node) for exp in triplet)): # not separated
-                                continue
-                        else:
-                            if (second_node in triplet or # skip if it's already in the triplet
-                                not all(self._is_separator(exp[:-1], second_node[:-1], Y_node) for exp in triplet)): # not separated
-                                continue
-
-                        # we found a triplet!
-                        triplet = [expectation, first_node, second_node]
-                        found = True
-                        break
-
-                if not found:
-                    # try everything
-                    for first_node in [
-                        ((node, Y_node), expectation[1]) if self.allow_abstentions else (node, Y_node)
-                        for node in self.nodes if 'Y' not in node
-                    ]:
-                        if self.allow_abstentions:
-                            if (first_node in triplet or # skip if it's already in the triplet
-                                first_node[0][0] in expectation[1] or # skip if the node is part of the condition
-                                not self._is_separator(expectation[0][:-1], first_node[0][:-1], Y_node)): # not separated
-                                continue
-                        else:
-                            if (first_node in triplet or # skip if it's already in the triplet
-                                not self._is_separator(expectation[:-1], first_node[:-1], Y_node)): # not separated
-                                continue 
-
-                        triplet = [expectation, first_node]
-
-                        for second_node in [
-                            ((node, Y_node), expectation[1]) if self.allow_abstentions else (node, Y_node)
-                            for node in self.nodes if 'Y' not in node
-                        ]:
-                            if self.allow_abstentions:
-                                if (second_node in triplet or # skip if it's already in the triplet
-                                    second_node[0][0] in expectation[1] or # skip if the node is part of the condition
-                                    not all(self._is_separator(exp[0][:-1], second_node[0][:-1], Y_node) for exp in triplet)): # not separated
-                                    continue
-                            else:
-                                if (second_node in triplet or # skip if it's already in the triplet
-                                    not all(self._is_separator(exp[:-1], second_node[:-1], Y_node) for exp in triplet)): # not separated
-                                    continue
-                            # we found a triplet!
-                            triplet = [expectation, first_node, second_node]
-                            found = True
-                            break
-
-                if found:
-                    triplets.append(triplet)
-                    for expectation in triplet:
-                        expectations_in_triplets.add(expectation)
-        else:
-            triplets = self.triplets
-        
-        all_moments = set()
-        abstention_probabilities = {}
-        
-        for exp1, exp2, exp3 in triplets:
-            if self.allow_abstentions:
-                condition = exp1[1]
-                
-                moments = [
-                    tuple(sorted(exp1[0][:-1] + exp2[0][:-1])),
-                    tuple(sorted(exp1[0][:-1] + exp3[0][:-1])),
-                    tuple(sorted(exp2[0][:-1] + exp3[0][:-1]))
-                ]
-                
-                indices1 = tuple(sorted([ int(node.split('_')[1]) for node in exp1[0][:-1] ]))
-                indices2 = tuple(sorted([ int(node.split('_')[1]) for node in exp2[0][:-1] ]))
-                indices3 = tuple(sorted([ int(node.split('_')[1]) for node in exp3[0][:-1] ]))
-                
-                if indices1 not in abstention_probabilities:
-                    abstention_probabilities[indices1] = 0
-                if indices2 not in abstention_probabilities:
-                    abstention_probabilities[indices2] = 0
-                if indices3 not in abstention_probabilities:
-                    abstention_probabilities[indices3] = 0
-            else:
-                # first, figure out which moments we need to compute
-                moments = [
-                    tuple(sorted(exp1[:-1] + exp2[:-1])),
-                    tuple(sorted(exp1[:-1] + exp3[:-1])),
-                    tuple(sorted(exp2[:-1] + exp3[:-1]))
-                ]
-            for moment in moments:
-                indices = tuple(sorted([ int(node.split('_')[1]) for node in moment ]))
-                
-                if indices not in all_moments:
-                    all_moments.add(indices)
-        
-        return triplets, all_moments, abstention_probabilities
-    
-    def _triplet_method_probabilities(self, triplets, lambda_moment_vals, lambda_zeros,
-                                     abstention_probabilities, sign_recovery):
-        expectation_values = {}
-        for exp1, exp2, exp3 in triplets:
-            if self.allow_abstentions:
-                moments = [
-                    tuple(sorted(exp1[0][:-1] + exp2[0][:-1])),
-                    tuple(sorted(exp1[0][:-1] + exp3[0][:-1])),
-                    tuple(sorted(exp2[0][:-1] + exp3[0][:-1]))
-                ]
-            else:
-                # first, figure out which moments we need to compute
-                moments = [
-                    tuple(sorted(exp1[:-1] + exp2[:-1])),
-                    tuple(sorted(exp1[:-1] + exp3[:-1])),
-                    tuple(sorted(exp2[:-1] + exp3[:-1]))
-                ]
-            
-            moment_vals = [
-                lambda_moment_vals[
-                    tuple(sorted([ int(node.split('_')[1]) for node in moment ]))
-                ]
-                for moment in moments
-            ]
-            
-            expectation_values[exp1] = (
-                math.sqrt(abs(moment_vals[0] * moment_vals[1] / moment_vals[2])) if moment_vals[2] != 0 else 0)
-            expectation_values[exp2] = (
-                math.sqrt(abs(moment_vals[0] * moment_vals[2] / moment_vals[1])) if moment_vals[1] != 0 else 0)
-            expectation_values[exp3] = (
-                math.sqrt(abs(moment_vals[1] * moment_vals[2] / moment_vals[0])) if moment_vals[0] != 0 else 0)
-        
-        if sign_recovery == 'all_positive':
-            # all signs are already positive
-            pass
-        else:
-            print('{} sign recovery not implemented'.format(sign_recovery))
-            return
-        
-        if self.allow_abstentions:
-            # probability is 0.5 * (1 + expectation - P(lambda part of factor is zero)) * P(conditional)
-            # P(conditional) is 1 if there is no conditional
-            probabilities = {}
-            for expectation in sorted(list(expectation_values.keys())):
-                exp_value = expectation_values[expectation]
-                if expectation[1][0] == '0':
-                    condition_prob = 1
-                else:
-                    zero_condition = tuple(sorted([ int(node.split('_')[1]) for node in expectation[1] ]))
-                    condition_prob = lambda_zeros[zero_condition]
-                
-                lambda_factor = tuple(sorted([ int(node.split('_')[1]) for node in expectation[0][:-1] ]))
-                abstention_prob = abstention_probabilities[lambda_factor]
-                
-                probabilities[expectation] = 0.5 * (1 + exp_value - abstention_prob) * condition_prob
-        else:
-            probabilities = {
-                expectation: 0.5 * (1 + expectation_values[expectation])
-                for expectation in sorted(list(expectation_values.keys()))
-            }
-            
-        
-        return probabilities
-    
-    def _generator_e_vector(self, clique):
-        lambda_values = [1, 0, -1] if self.allow_abstentions else [1, -1]
-        e_vec = [[1], [-1]]
-        for i in range(len(clique) - 1):
-            new_e_vec = []
-            if not self.allow_abstentions:
-                for new_val in lambda_values:
-                    for e_val in e_vec:
-                        new_e_vec.append(e_val + [new_val])
-            else:
-                for e_val in e_vec:
-                    for new_val in lambda_values:
-                        new_e_vec.append([new_val] + e_val)
-            e_vec = new_e_vec
-        e_vec = [ tuple(e_val) for e_val in e_vec ]
-        
-        return e_vec
-    
-    def _generate_r_vector(self, clique):
-        indices = [ int(node.split('_')[1]) for node in clique ]
-        lf_indices = sorted(indices[:-1])
-        Y_idx = indices[-1]
-        Y_val = 'Y_{}'.format(Y_idx)
-        
-        e_vec = self._generator_e_vector(clique)
-        
-        r_vec = []
-        for e_vec_tup in e_vec:
-            # P(a * b * ... * c = 1) for everything in this array
-            r_vec_entry_equal_one = []
-            # P(a = 0, b = 0, ..., c = 0) for everything in this array
-            r_vec_entry_equal_zero = []
-            for e_vec_entry, lf_idx in zip(e_vec_tup, lf_indices):
-                # if you have abstentions, -1 means add to equal zero, 0 means add to equal one
-                if self.allow_abstentions: 
-                    if e_vec_entry == -1:
-                        r_vec_entry_equal_zero.append('lambda_{}'.format(lf_idx))
-                    if e_vec_entry == 0:
-                        r_vec_entry_equal_one.append('lambda_{}'.format(lf_idx))
-                # otherwise, -1 means add to equal one
-                else:
-                    if e_vec_entry == -1:
-                        r_vec_entry_equal_one.append('lambda_{}'.format(lf_idx))
-            if e_vec_tup[-1] == -1:
-                r_vec_entry_equal_one.append(Y_val)
-        
-            entries_equal_one = (
-                tuple(['1']) if len(r_vec_entry_equal_one) == 0 else
-                tuple(r_vec_entry_equal_one))
-            entries_equal_zero = (
-                tuple(['0']) if len(r_vec_entry_equal_zero) == 0 else
-                tuple(r_vec_entry_equal_zero))
-            if self.allow_abstentions:
-                r_vec.append((
-                    entries_equal_one,
-                    entries_equal_zero
-                ))
-            else:
-                if len(r_vec_entry_equal_zero) > 0:
-                    print('No abstentions allowed!')
-                    exit(1)
-                r_vec.append(entries_equal_one)
-        
-        return r_vec
-    
-    def _generate_b_matrix(self, clique):
-        if not self.allow_abstentions:
-            b_matrix_orig = np.array([[1, 1], [1, -1]])
-            b_matrix = b_matrix_orig
-            for i in range(len(clique) - 1):
-                b_matrix = np.kron(b_matrix, b_matrix_orig)
-            b_matrix[b_matrix < 0] = 0
-            
-            return b_matrix
-        else:
-            a_zero = np.array([
-                [1, 1],
-                [1, 0]
-            ])
-            b_zero = np.array([
-                [0, 0],
-                [0, 1]
-            ])
-            
-            c_matrix = np.array([
-                [1, 1, 1],
-                [1, 0, 0],
-                [0, 1, 0]
-            ])
-            d_matrix = np.array([
-                [0, 0, 0],
-                [0, 0, 1],
-                [0, 0, 0]
-            ])
-            
-            a_i = a_zero
-            b_i = b_zero
-            for i in range(len(clique) - 1):
-                a_prev = a_i
-                b_prev = b_i
-                a_i = np.kron(a_prev, c_matrix) + np.kron(b_prev, d_matrix)
-                b_i = np.kron(a_prev, d_matrix) + np.kron(b_prev, c_matrix)
-                
-            return a_i
-        
-    def _compute_class_balance(self, class_balance=None, Y_dev=None):
-        # generate class balance of Ys
-        Ys_ordered = [ 'Y_{}'.format(i) for i in range(self.v) ]
-        cardinalities = [ 2 for i in range(self.v) ]
-        if class_balance is not None:
-            class_balance = class_balance / sum(class_balance)
-            cb = JointProbabilityDistribution(
-                Ys_ordered, cardinalities, class_balance
-            )
-        elif Y_dev is not None:
-            Ys_ordered = [ 'Y_{}'.format(i) for i in range(self.v) ]
-            vals = { Y: (-1, 1) for Y in Ys_ordered }
-            Y_vecs = sorted([
-                [ vec_dict[Y] for Y in Ys_ordered ]
-                for vec_dict in dict_product(vals)
-            ])
-            counts = {
-                tuple(Y_vec): 0
-                for Y_vec in Y_vecs
-            }
-            for data_point in Y_dev:
-                counts[tuple(data_point)] += 1
-            cb = JointProbabilityDistribution(
-                Ys_ordered, cardinalities,
-                [
-                    float(counts[tuple(Y_vec)]) / len(Y_dev)
-                    for Y_vec in Y_vecs
-                ])
-        else:
-            num_combinations = 2 ** self.v
-            cb = JointProbabilityDistribution(
-                Ys_ordered, cardinalities, [
-                    1. / num_combinations for i in range(num_combinations)
-                ])
-            
-        return cb
-        
-    def _compute_Y_marginals(self, Y_marginals):
-        for marginal in Y_marginals:
-            nodes = [ 'Y_{}'.format(idx) for idx in marginal ]
-            Y_marginals[marginal] = self.cb.marginal_distribution(
-                nodes,
-                inplace=False
-            )
-        
-        return Y_marginals
-    
-    def _compute_Y_equals_one(self, Y_equals_one):
-        # compute from class balance
-        for factor in Y_equals_one:
-            nodes = [ 'Y_{}'.format(idx) for idx in factor ]
-
-            Y_marginal = self.cb.marginal_distribution(
-                nodes,
-                inplace=False
-            )
-            vals = { Y: (-1, 1) for Y in nodes }
-            Y_vecs = sorted([
-                [ vec_dict[Y] for Y in nodes ]
-                for vec_dict in dict_product(vals)
-            ])
-
-            # add up the probabilities of all the vectors whose values multiply to +1
-            total_prob = 0
-            for Y_vec in Y_vecs:
-                if np.prod(Y_vec) == 1:
-                    vector_prob = Y_marginal.reduce(
-                        [
-                            (Y_i, Y_val if Y_val == 1 else 0) 
-                            for Y_i, Y_val in zip(nodes, Y_vec)
-                        ],
-                        inplace=False
-                    ).values
-                    total_prob += vector_prob
-
-            Y_equals_one[factor] = total_prob
-            
-        return Y_equals_one
     
     def _lambda_pass(self, L_train, lambda_marginals, lambda_moment_vals, lambda_equals_one,
                     lambda_zeros, abstention_probabilities, verbose = False):
@@ -1056,9 +519,9 @@ class LabelModel:
         if verbose:
             print('Expectations to estimate written down', file=sys.stderr)
         
-        if solve_method == 'triplet':
+        if solve_method[:len('triplet')] == 'triplet':
             triplets, new_moment_vals, abstention_probabilities = self._triplet_method_preprocess(
-                expectations_to_estimate)
+                expectations_to_estimate, solve_method)
             self.triplets = triplets
         elif solve_method == 'independencies':
             print('Independencies not implemented yet!')
@@ -1114,15 +577,16 @@ class LabelModel:
             marginals[idx] = (clique, marginal)
         
         # get unobserved probabilities
-        if solve_method == 'triplet':
-            probability_values = self._triplet_method_probabilities(
+        if solve_method[:len('triplet')] == 'triplet':
+            probability_values, expectation_values = self._triplet_method_probabilities(
                 triplets, lambda_moment_vals, lambda_zeros,
-                abstention_probabilities, sign_recovery)
+                abstention_probabilities, sign_recovery, solve_method)
         elif solve_method == 'independencies':
             print('Independencies not implemented yet!')
             return
         
         self.probability_values = probability_values
+        self.expectation_values = expectation_values
         
         if verbose:
             print('Unobserved probabilities computed', file=sys.stderr)
@@ -1185,7 +649,7 @@ class LabelModel:
             r_vec_vals = np.array([ r_vals[exp] for exp in r_vec ])
             
             # e_vec is the vector of marginal values
-            e_vec = self._generator_e_vector(clique)
+            e_vec = self._generate_e_vector(clique)
             
             b_matrix = self._generate_b_matrix(clique)
             
