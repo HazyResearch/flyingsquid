@@ -61,6 +61,8 @@ class LabelModel(_triplets.Mixin, _graphs.Mixin, _observables.Mixin,
             for start, end in lambda_edges
         ])
         
+        self.fully_independent_case = lambda_edges == []
+        
         self.m = m
         self.v = v
         self.G = G
@@ -325,7 +327,7 @@ class LabelModel(_triplets.Mixin, _graphs.Mixin, _observables.Mixin,
           is used to find out the class balance. Otherwise not used.
           If this is not specified, and class_balance is not specified, then class balance is uniform.
           1 means positive, -1 means negative.
-        flip_negative: if True, slip sign of negative probabilities
+        flip_negative: if True, flip sign of negative probabilities
         clamp: if True and flip_negative is not True, set negative probabilities to 0
         solve_method: one of ['triplet', 'independencies']
           If triplet, use the method below and the independencies we write down there.
@@ -497,7 +499,7 @@ class LabelModel(_triplets.Mixin, _graphs.Mixin, _observables.Mixin,
                     # we can't observe this
                     expectations_to_estimate.add(r_val)
                 elif num_lambdas(equals_one_tup) > 0:
-                    # compute probably some lambda's multiply to one, subject to some zeros
+                    # compute probability some lambda's multiply to one, subject to some zeros
                     pos_indices = tuple(sorted([ int(node.split('_')[1]) for node in equals_one_tup ]))
                     zero_indices = tuple(sorted([ int(node.split('_')[1]) for node in equals_zero_tup ]))
                     
