@@ -398,7 +398,7 @@ class Mixin:
                     agg_function = np.median
                 expectation_values[exp] = agg_function(expectation_value_candidates[exp])
                 
-        self.expectation_value_candidates = expectation_value_candidates
+            self.expectation_value_candidates = expectation_value_candidates
         
         if sign_recovery == 'all_positive':
             # all signs are already positive
