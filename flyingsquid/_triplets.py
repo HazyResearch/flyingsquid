@@ -397,6 +397,8 @@ class Mixin:
                 if solve_method == 'triplet_median':
                     agg_function = np.median
                 expectation_values[exp] = agg_function(expectation_value_candidates[exp])
+                
+        self.expectation_value_candidates = expectation_value_candidates
         
         if sign_recovery == 'all_positive':
             # all signs are already positive
