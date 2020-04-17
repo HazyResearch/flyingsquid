@@ -284,6 +284,7 @@ class LabelModel:
                         triplet = [expectation, first_node, second_node]
                         found = True
                         break
+
                     if found:
                         break
 
@@ -341,6 +342,9 @@ class LabelModel:
                             # we found a triplet!
                             triplet = [expectation, first_node, second_node]
                             found = True
+                            break
+
+                        if found:
                             break
 
                 if found:
