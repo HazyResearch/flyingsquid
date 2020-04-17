@@ -344,8 +344,7 @@ class Mixin:
                             (second_moment[idx, i] * second_moment[idx, j] / second_moment[i, j])
                             if second_moment[i, j] != 0 else 0
                         ))
-                        if val != 0:
-                            triplet_vals.append(val)
+                        triplet_vals.append(val)
                 return triplet_vals
             all_vals = [all_triplet_vals(idx) for idx in range(self.m)]
             expectations_to_estimate = [
@@ -393,8 +392,7 @@ class Mixin:
                         expectation_value_candidates[exp1] = []
                     exp_value = (
                         math.sqrt(abs(moment_vals[0] * moment_vals[1] / moment_vals[2])) if moment_vals[2] != 0 else 0)
-                    if exp_value != 0:
-                        expectation_value_candidates[exp1].append(exp_value)
+                    expectation_value_candidates[exp1].append(exp_value)
         
         if solve_method in ['triplet_mean', 'triplet_median']:
             for exp in expectation_value_candidates:
