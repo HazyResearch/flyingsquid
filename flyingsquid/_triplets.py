@@ -388,7 +388,8 @@ class Mixin:
                         expectation_value_candidates[exp1] = []
                     exp_value = (
                         math.sqrt(abs(moment_vals[0] * moment_vals[1] / moment_vals[2])) if moment_vals[2] != 0 else 0)
-                    expectation_value_candidates[exp1].append(exp_value)
+                    if exp_value != 0:
+                        expectation_value_candidates[exp1].append(exp_value)
         
         if solve_method in ['triplet_mean', 'triplet_median']:
             for exp in expectation_value_candidates:
