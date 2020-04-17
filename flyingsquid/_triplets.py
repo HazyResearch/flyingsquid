@@ -340,10 +340,12 @@ class Mixin:
                     for j in range(i):
                         if j == idx:
                             continue
-                        triplet_vals.append(math.sqrt(abs(
+                        val = math.sqrt(abs(
                             (second_moment[idx, i] * second_moment[idx, j] / second_moment[i, j])
                             if second_moment[i, j] != 0 else 0
-                        )))
+                        ))
+                        if val != 0:
+                            triplet_vals.append(val)
                 return triplet_vals
             all_vals = [all_triplet_vals(idx) for idx in range(self.m)]
             expectations_to_estimate = [
