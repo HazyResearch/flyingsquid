@@ -126,6 +126,9 @@ class Mixin:
 
                         triplet = [expectation, first_node]
 
+                        if found:
+                            break
+
                         for second_node in [
                             ((node, Y_node), expectation[1]) if self.allow_abstentions else (node, Y_node)
                             for node in self.nodes if 'Y' not in node
