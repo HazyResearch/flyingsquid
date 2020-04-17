@@ -854,7 +854,7 @@ class LabelModel:
         '''Compute the marginal probabilities of each clique and separator set in the junction tree.
         
         L_train: an m x n matrix of LF outputs. L_train[k][i] is the value of \lambda_i on item k.
-            1 means positive, -1 means negative. No abstains.
+            1 means positive, -1 means negative, 0 means abstain.
         class_balance: a 2^v vector of the probabilities of each combination of Y values. Sorted in
           lexicographical order (entry zero is for Y_0 = -1, ..., Y_{v-1} = -1, entry one is for
           Y_0 = -1, ..., Y_{v-1} = 1, last entry is for Y_0 = 1, ..., Y_{v-1} = 1).
@@ -886,7 +886,7 @@ class LabelModel:
           * We assume that we have the joint distribution/class balance of our Y's (or can infer it
             from the dev set).
           * We observe agreements and disagreements between LF's, so we can compute values like
-            P(\lambda_i \lambda_j = 1). (For now, we assume that LF's are binary and do not abstain).
+            P(\lambda_i \lambda_j = 1).
           * The only thing we need to estimate now are correlations between LF's and (unseen) Y's -
             values like P(\lambda_i Y_j = 1).
           * Luckily, we have P(\lambda_i Y_j = 1) = 1/2(1 + E[\lambda_i Y_j]). We refer to E[\lambda_i Y_j]
@@ -1242,7 +1242,7 @@ class LabelModel:
         '''Predict the probabilities of the Y's given the outputs of the LF's.
         
         L_matrix: a m x |Y| matrix of of LF outputs. L_matrix[k][i] is the value of \lambda_i on item k.
-            1 means positive, -1 means negative. No abstains.
+            1 means positive, -1 means negative, 0 means abstain.
         
         Let C be the set of all cliques in the graphical model, and S the set of all separator sets.
         Let d(s) for s \in S be the number of maximal cliques that s separates.
@@ -1389,7 +1389,7 @@ class LabelModel:
         '''Predict the value of the Y's that best fits the outputs of the LF's.
         
         L_matrix: a m x |Y| matrix of LF outputs. L_matrix[k][i] is the value of \lambda_i on item k.
-            1 means positive, -1 means negative. No abstains.
+            1 means positive, -1 means negative, 0 means abstain.
         
         Let C be the set of all cliques in the graphical model, and S the set of all separator sets.
         Let d(s) for s \in S be the number of maximal cliques that s separates.
@@ -1417,7 +1417,7 @@ class LabelModel:
         Y values every time (return a separate probability for +1/-1 for each Y).
         
         L_matrix: a m x |Y| matrix of of LF outputs. L_matrix[k][i] is the value of \lambda_i on item k.
-            1 means positive, -1 means negative. No abstains.
+            1 means positive, -1 means negative, 0 means abstain.
         
         Let C be the set of all cliques in the graphical model, and S the set of all separator sets.
         Let d(s) for s \in S be the number of maximal cliques that s separates.
