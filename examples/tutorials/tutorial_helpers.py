@@ -48,8 +48,8 @@ def synthetic_data_basics():
     n_dev = 500
     
     m = 5
-    theta = [1.5,1.5,.2,.2,.05]
-    abstain_rate = [.80, .88, .28, .38, .45]
+    theta = [1.5,.5,.2,.2,.05]
+    abstain_rate = [.8, .88, .28, .38, .45]
     
     train_data = generate_data(n_train, theta, m)
     dev_data = generate_data(n_dev, theta, m)

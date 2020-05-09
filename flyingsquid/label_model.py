@@ -308,6 +308,9 @@ class LabelModel:
                         found = True
                         break
 
+                    if found:
+                        break
+
                 if not found:
                     # try everything
                     for first_node in [
