@@ -688,7 +688,7 @@ class LabelModel:
         for marginal in easy_marginals:
             idx = marginal[0]
             counts = [ np.sum(L_train[:,idx] == val) / L_train.shape[0] for val in lf_values ]
-            easy_marginal[marginal] = JointProbabilityDistribution(
+            easy_marginals[marginal] = JointProbabilityDistribution(
                 [ 'lambda_{}'.format(idx) ], [ lf_cardinality ], counts
             )
             
@@ -814,7 +814,7 @@ class LabelModel:
             lf_cardinality = 3 if self.allow_abstentions else 2
             for marginal in lambda_marginals:
                 nodes = [ 'lambda_{}'.format(idx) for idx in marginal ]
-                lf_vec = lambda_marginal_vecs[marginal]
+                lf_vecs = lambda_marginal_vecs[marginal]
                 counts = lambda_marginal_counts[marginal]
 
                 lambda_marginals[marginal] = JointProbabilityDistribution(
@@ -984,7 +984,7 @@ class LabelModel:
                 if indices not in Y_marginals:
                     Y_marginals[indices] = None
             else:
-                if indices not in lambda_moment_vals:
+                if indices not in lambda_marginals:
                     lambda_marginals[indices] = None
                     
         if verbose:
