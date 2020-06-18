@@ -4,6 +4,14 @@
 
 # More Interactive Weak Supervision with FlyingSquid
 
+**UPDATE 06/17/20**: Code re-factored, with two new features:
+* Compute label model parameters by looking at all possible triplets and taking
+the mean or median; we find this to be more stable than just looking at a single
+triplet (use `label_model.fit(..., solve_method='triplet_mean')`).
+By default, the code now uses `triplet_mean`.
+* Get the estimated accuracies of each labeling function `P(lambda_i == Y)` with
+`label_model.estimated_accuracies()`.
+
 FlyingSquid is a new framework for automatically building models from multiple
 noisy label sources.
 Users write functions that generate noisy labels for data, and FlyingSquid uses
