@@ -8,7 +8,7 @@
 * Compute label model parameters by looking at all possible triplets and taking
 the mean or median; we find this to be more stable than just looking at a single
 triplet (use `label_model.fit(..., solve_method='triplet_mean')`).
-By default, the code now uses means.
+By default, the code now uses `triplet_mean`.
 * Get the estimated accuracies of each labeling function `P(lambda_i == Y)` with
 `label_model.estimated_accuracies()`.
 
