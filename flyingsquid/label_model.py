@@ -313,7 +313,7 @@ class LabelModel(_triplets.Mixin, _graphs.Mixin, _observables.Mixin,
         return lambda_marginals, lambda_moment_vals, lambda_equals_one, lambda_zeros, abstention_probabilities
     
     def fit(self, L_train, class_balance=None, Y_dev=None, flip_negative=True, clamp=True, 
-            solve_method='triplet',
+            solve_method='triplets_mean',
             sign_recovery='all_positive',
             verbose = False):
         '''Compute the marginal probabilities of each clique and separator set in the junction tree.
@@ -329,7 +329,7 @@ class LabelModel(_triplets.Mixin, _graphs.Mixin, _observables.Mixin,
           1 means positive, -1 means negative.
         flip_negative: if True, flip sign of negative probabilities
         clamp: if True and flip_negative is not True, set negative probabilities to 0
-        solve_method: one of ['triplet', 'independencies']
+        solve_method: one of ['triplet_mean', 'triplet_median', 'triplet', 'independencies']
           If triplet, use the method below and the independencies we write down there.
           If independencies, use the following facts:
             * For any lambda_i: lambda_i * Y and Y are independent for any i, so

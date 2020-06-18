@@ -85,6 +85,7 @@ class Mixin:
                         triplet = [expectation, first_node, second_node]
                         found = True
                         break
+                        
                     if found:
                         break
 
@@ -106,6 +107,9 @@ class Mixin:
                         # we found a triplet!
                         triplet = [expectation, first_node, second_node]
                         found = True
+                        break
+                    
+                    if found:
                         break
 
                 if not found:
@@ -145,6 +149,9 @@ class Mixin:
                             # we found a triplet!
                             triplet = [expectation, first_node, second_node]
                             found = True
+                            break
+                            
+                        if found:
                             break
 
                 if found:
