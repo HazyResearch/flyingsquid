@@ -908,3 +908,33 @@ class LabelModel(_triplets.Mixin, _graphs.Mixin, _observables.Mixin,
         ]
         
         return np.sum(combination_probs[:, task_indices], axis=2).reshape(len(combination_probs) * self.v)
+
+    def estimated_accuracies(self):
+        '''Get the estimated accuracies of each LF.
+        
+        Assumes that each LF is connected to exactly one Y node.
+        Let Y(i) denote the node that LF i is connected to.
+        This function returns an array of values P(lambda_i = Y(i)), for each LF i.
+        
+        Outputs: a m-sized array of estimated LF accuracies.
+        '''
+        if not self.probability_values:
+            print('You need to train the label model first!')
+            return
+        
+        accuracies = []
+        for i in range(self.m):
+            lambda_node = 'lambda_{}'.format(i)
+            Y_node = [
+                e2
+                for e1, e2 in self.G.edges
+                if e1 == lambda_node and 'Y' in e2
+            ][0]
+            if self.allow_abstentions:
+                prob_key = (
+                    (lambda_node, Y_node), ('0', )
+                ) if self.allow_abstentions else (lambda_node, Y_node)
+                
+                accuracies.append(self.probability_values[prob_key])
+                
+        return accuracies
