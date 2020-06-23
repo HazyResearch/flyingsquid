@@ -313,7 +313,7 @@ class LabelModel(_triplets.Mixin, _graphs.Mixin, _observables.Mixin,
         return lambda_marginals, lambda_moment_vals, lambda_equals_one, lambda_zeros, abstention_probabilities
     
     def fit(self, L_train, class_balance=None, Y_dev=None, flip_negative=True, clamp=True, 
-            solve_method='triplets_mean',
+            solve_method='triplet_mean',
             sign_recovery='all_positive',
             verbose = False):
         '''Compute the marginal probabilities of each clique and separator set in the junction tree.

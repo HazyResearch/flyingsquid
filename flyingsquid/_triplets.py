@@ -321,6 +321,8 @@ class Mixin:
             return self._triplet_method_single_seed(expectations_to_estimate)
         elif solve_method in [ 'triplet_mean', 'triplet_median' ]:
             return self._triplet_method_mean_median(expectations_to_estimate, solve_method)
+        else:
+            raise NotImplemented('Unknown solve method {}'.format(solve_method))
     
     def _triplet_method_probabilities(self, triplets, lambda_moment_vals, lambda_zeros,
                                      abstention_probabilities, sign_recovery, solve_method):
