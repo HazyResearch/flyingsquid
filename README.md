@@ -83,12 +83,12 @@ cd ..
 
 ## Citation
 
-If you use our work or found it useful, please cite our [arXiv paper](https://arxiv.org/abs/2002.11955) for now:
+If you use our work or found it useful, please cite our [paper](https://arxiv.org/abs/2002.11955) at ICML 2020:
 ```
-@article{fu2020fast,
+@inproceedings{fu2020fast,
   author = {Daniel Y. Fu and Mayee F. Chen and Frederic Sala and Sarah M. Hooper and Kayvon Fatahalian and Christopher R\'e},
   title = {Fast and Three-rious: Speeding Up Weak Supervision with Triplet Methods},
-  journal = {arXiv preprint arXiv:2002.11955},
+  booktitle = {Proceedings of the 37th International Conference on Machine Learning (ICML 2020)},
   year = {2020},
 }
 ```
