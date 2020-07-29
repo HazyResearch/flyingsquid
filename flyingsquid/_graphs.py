@@ -44,14 +44,14 @@ class Mixin:
                     continue
 
                 for neighbor in neighbors(curNode):
-                    if curNode == srcNode:
+                    if neighbor == srcNode:
                         continue
                     if neighbor in dstSet:
                         return False
                     if neighbor in separatorSet:
                         continue
                     if neighbor not in visited:
-                        queue.push(neighbor)
+                        queue.append(neighbor)
         
         return True
                     
@@ -106,6 +106,8 @@ class Mixin:
             
             if y_count != 1:
                 continue
+            if lambda_count == 0:
+                continue
             
             separator_y = [node for node in marginal if 'Y' in node]
             lambdas = [node for node in marginal if 'lambda' in node]
@@ -115,7 +117,7 @@ class Mixin:
                 if 'Y' in first_node or first_node in lambdas:
                     continue
                 for second_node in self.nodes:
-                    if 'Y' in first_node or first_node in lambdas:
+                    if 'Y' in second_node or second_node in lambdas:
                         continue
                         
                     if (self._is_separator(lambdas, [first_node], separator_y) and
