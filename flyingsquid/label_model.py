@@ -81,6 +81,9 @@ class LabelModel(_triplets.Mixin, _graphs.Mixin, _observables.Mixin,
         
         self.allow_abstentions = allow_abstentions
         self.triplets = triplets
+        
+        if not self._check():
+            raise NotImplementedError('Cannot run triplet method for specified graph.')
     
     # Make this Picklable
     def save(obj):
