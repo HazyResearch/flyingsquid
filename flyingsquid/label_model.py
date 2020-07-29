@@ -776,7 +776,7 @@ class LabelModel(_triplets.Mixin, _graphs.Mixin, _observables.Mixin,
                                 for clique_node, lambda_val in zip(clique, lambda_vec)
                             ], 
                             inplace=False).values
-
+                        
             indexes = np.array([
                 [
                     np.sum([
@@ -788,7 +788,7 @@ class LabelModel(_triplets.Mixin, _graphs.Mixin, _observables.Mixin,
                 ]
                 for data_point in L_matrix
             ]).astype('int')
-
+            
             clique_values = A_lambda[:, np.arange(indexes.shape[1]), indexes]
 
             numerator_values = np.prod(clique_values, axis=2)
@@ -845,9 +845,12 @@ class LabelModel(_triplets.Mixin, _graphs.Mixin, _observables.Mixin,
             predictions = predictions * lambda_numerator
         if len(zero_lambda_cliques) > 0:
             predictions = predictions * numerator_ys
-        predictions = predictions / denominator_ys
+        predictions = (predictions / denominator_ys).T
+
+        # in the case of zero-sum predictions
+        predictions[predictions.sum(axis = 1) == 0] += .001
         
-        normalized_preds = predictions.T / np.array(([predictions.sum(axis = 0),] * len(Y_vecs))).T
+        normalized_preds = predictions / np.array(([predictions.sum(axis = 1),] * len(Y_vecs))).T
         
         return normalized_preds
     
