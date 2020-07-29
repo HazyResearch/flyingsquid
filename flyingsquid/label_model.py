@@ -64,6 +64,8 @@ class LabelModel(_triplets.Mixin, _graphs.Mixin, _observables.Mixin,
         self.fully_independent_case = lambda_edges == []
         
         self.m = m
+        if m < 3:
+            raise NotImplementedError("Triplet method needs at least three LF's to run.")
         self.v = v
         self.G = G
         self.junction_tree = self.G.to_junction_tree()
