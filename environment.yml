@@ -20,6 +20,7 @@ dependencies:  # New core deps should also be added to setup.py for pip
     - tqdm
     - joblib
     - pgmpy
+    - flyingsquid
   - matplotlib=3
   - nose
   - jupyter

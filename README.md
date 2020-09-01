@@ -60,10 +60,6 @@ cd flyingsquid
 
 conda env create -f environment.yml
 conda activate flyingsquid
-
-pip install -e .
-
-cd ..
 ```
 
 Alternatively, you can install the dependencies yourself:
@@ -72,13 +68,19 @@ Alternatively, you can install the dependencies yourself:
 
 And then install the actual package:
 ```
+pip install flyingsquid
+```
+
+To install from source:
+```
 git clone https://github.com/HazyResearch/flyingsquid.git
 
 cd flyingsquid
 
-pip install -e .
+conda env create -f environment.yml
+conda activate flyingsquid
 
-cd ..
+pip install -e .
 ```
 
 ## Citation
